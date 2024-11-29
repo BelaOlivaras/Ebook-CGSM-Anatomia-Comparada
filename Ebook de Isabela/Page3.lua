@@ -2,56 +2,39 @@ local composer = require("composer")
 
 local scene = composer.newScene()
 
-local isSoundOn = true -- Variable to control the sound state
-local backgroundMusic -- Variable to store the background music
+local isSoundOn = true
+local backgroundMusic
 
 function scene:create(event)
     local sceneGroup = self.view
-    local background = display.newImage("images/background/pagina 3.png")
-    local btnNext = display.newImage("images/objects/next.png")
-    local btnPrev = display.newImage("images/objects/prev.png")
-    local btnVolumeOn = display.newImage("images/objects/volume.png")
-    local btnVolumeOff = display.newImage("images/objects/volumeoff.png")
-    local imagem1 = display.newImage("images/objects/page4/imagen1.png")
-    local imagem2 = display.newImage("images/objects/page4/imagen2.png")
-    local imagem3 = display.newImage("images/objects/page4/imagen3.png")
-    local text = display.newImage("images/objects/page4/text.png")
 
-    -- Positioning elements
-    background.x = display.contentCenterX
-    background.y = display.contentCenterY
-    btnNext.x = 610
-    btnNext.y = 940
-    btnPrev.x = 100
-    btnPrev.y = 940
-    btnVolumeOn.x = display.contentCenterX - 100
-    btnVolumeOn.y = 940
-    btnVolumeOff.x = display.contentCenterX + 100
-    btnVolumeOff.y = 940
-    imagem1.x = 200
-    imagem1.y = 540
-    imagem2.x = 570
-    imagem2.y = 540
-    imagem3.x = display.contentCenterX
-    imagem3.y = 720
-    text.x = display.contentCenterX
-    text.y = 850
+    local background = display.newImage(sceneGroup, "images/background/pagina 2.png")
+    local btnNext = display.newImage(sceneGroup, "images/objects/next.png")
+    local btnPrev = display.newImage(sceneGroup, "images/objects/prev.png")
+    local btnVolumeOn = display.newImage(sceneGroup, "images/objects/volume.png")
+    local btnVolumeOff = display.newImage(sceneGroup, "images/objects/volumeoff.png")
+    local foiljog1 = display.newImage(sceneGroup, "images/objects/page3/jf1.png")
+    local foiljog2 = display.newImage(sceneGroup, "images/objects/page3/jf2.png")
+    local foil1 = display.newImage(sceneGroup, "images/objects/page3/f1.png")
+    local foil2 = display.newImage(sceneGroup, "images/objects/page3/f2.png")
 
-    -- Adjusting sizes
-    imagem1.width = 250
-    imagem1.height = 150
-    imagem2.width = 250
-    imagem2.height = 150
-    imagem3.width = 250
-    imagem3.height = 150
+    background:translate(display.contentCenterX, display.contentCenterY)
+    btnNext:translate(668, 940)
+    btnPrev:translate(100, 940)
+    btnVolumeOn:translate(display.contentCenterX, 940)
+    btnVolumeOff:translate(display.contentCenterX, 940)
+    foiljog1:translate(600, 200)
+    foiljog2:translate(150, 200)
 
-    -- Setting initial visibility
+    -- Foils start off-screen at the top
+    foil1:translate(600, 200)
+    foil1.isVisible = false
+    foil2:translate(150, 200)
+    foil2.isVisible = false
+
     btnVolumeOff.isVisible = false
-    imagem2.isVisible = false
-    imagem3.isVisible = false
 
-    -- Loading background sound
-    local startSound = audio.loadSound("sounds/No ComPod, a gente compartilha, (5).mp3")
+    local startSound = audio.loadSound("sounds/audio.mp3")
 
     local function playSound()
         audio.play(startSound, { loops = -1 })
@@ -75,53 +58,86 @@ function scene:create(event)
         end
     end
 
-    
-
-    -- Event listeners for images
-    local function showImagem2()
-        imagem2.isVisible = true
+    function btnVolumeOn:tap(event)
+        toggleSound()
     end
 
-    local function showImagem3()
-        imagem3.isVisible = true
+    function btnVolumeOff:tap(event)
+        toggleSound()
     end
 
-    
-
+    -- Navigation function
     function btnNext:tap(event)
-        composer.gotoScene("Page4", { effect = "fromRight", time = 1000 })
+        composer.gotoScene("Page4", { effect = "fromRight", time = 0 })
     end
 
     function btnPrev:tap(event)
-        composer.gotoScene("Page2", { effect = "fromLeft", time = 1000 })
+        composer.gotoScene("Page2", { effect = "fromLeft", time = 0 })
     end
 
-    btnPrev:addEventListener("tap", btnPrev)
-    btnNext:addEventListener("tap", btnNext)
-    imagem1:addEventListener("tap", showImagem2)
-    imagem2:addEventListener("tap", showImagem3)
-    btnVolumeOn:addEventListener("tap", function() toggleSound() end)
-    btnVolumeOff:addEventListener("tap", function() toggleSound() end)
+    -- Function to animate foils falling into place
+    local function onShake(event)
+        if event.isShake then
+            -- Animate foil1
+            foil1.isVisible = true
+            transition.to(foil1, {
+                time = 1000,
+                y = 350, -- Final position
+                transition = easing.outBounce,
+            })
+            -- Animate foil2
+            foil2.isVisible = true
+            transition.to(foil2, {
+                time = 1200,
+                y = 350, -- Final position
+                transition = easing.outBounce,
+            })
+        end
 
+        return true
+    end
+
+    -- Add listeners for shake and buttons
+    Runtime:addEventListener("accelerometer", onShake)
+    btnNext:addEventListener("tap", btnNext)
+    btnPrev:addEventListener("tap", btnPrev)
+    btnVolumeOn:addEventListener("tap", btnVolumeOn)
+    btnVolumeOff:addEventListener("tap", btnVolumeOff)
+
+    -- Add elements to the scene group
+    -- sceneGroup:insert(background)
+    -- sceneGroup:insert(btnNext)
+    -- sceneGroup:insert(btnPrev)
+    -- sceneGroup:insert(btnVolumeOn)
+    -- sceneGroup:insert(btnVolumeOff)
+    -- sceneGroup:insert(foil1)
+    -- sceneGroup:insert(foil2)
 end
 
 function scene:show(event)
+    local sceneGroup = self.view
     local phase = event.phase
 
-    if phase == "did" then
+    if phase == "will" then
+    elseif phase == "did" then
         audio.play(startSound, { loops = -1 })
     end
 end
 
 function scene:hide(event)
+    local sceneGroup = self.view
     local phase = event.phase
 
     if phase == "will" then
         audio.stop()
+        Runtime:removeEventListener("accelerometer", onShake)
+    elseif phase == "did" then
     end
 end
 
 function scene:destroy(event)
+    local sceneGroup = self.view
+
     if startSound then
         audio.dispose(startSound)
         startSound = nil

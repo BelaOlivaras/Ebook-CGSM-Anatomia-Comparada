@@ -2,45 +2,34 @@ local composer = require("composer")
 
 local scene = composer.newScene()
 
-local isSoundOn = true
-local backgroundMusic
+local isSoundOn = true -- Variable to control the sound state
+local backgroundMusic  -- Variable to store the background music
+
+local debugText
 
 function scene:create(event)
     local sceneGroup = self.view
-    local background = display.newImage("images/background/pagina 2.png")
-    local btnNext = display.newImage("images/objects/next.png")
-    local btnPrev = display.newImage("images/objects/prev.png")
-    local btnVolumeOn = display.newImage("images/objects/volume.png")
-    local btnVolumeOff = display.newImage("images/objects/volumeoff.png")
-    local foiljog1 = display.newImage("images/objects/page3/jf1.png")
-    local foiljog2 = display.newImage("images/objects/page3/jf2.png")
-    local foil1 = display.newImage("images/objects/page3/f1.png")
-    local foil2 = display.newImage("images/objects/page3/f2.png")
 
-    background.x = display.contentCenterX
-    background.y = display.contentCenterY
-    btnNext.x = 610
-    btnNext.y = 940
-    btnPrev.x = 100
-    btnPrev.y = 940
-    btnVolumeOn.x = display.contentCenterX
-    btnVolumeOn.y = 940
-    btnVolumeOff.x = display.contentCenterX
-    btnVolumeOff.y = 940
-    foiljog1.x = 600
-    foiljog1.y = 200
-    foiljog2.x = 150
-    foiljog2.y = 200
+    local background = display.newImage(sceneGroup, "images/background/pagina 1.png")
+    local btnNext = display.newImage(sceneGroup, "images/objects/next.png")
+    local btnPrev = display.newImage(sceneGroup, "images/objects/prev.png")
+    local btnVolumeOn = display.newImage(sceneGroup, "images/objects/volume.png")
+    local btnVolumeOff = display.newImage(sceneGroup, "images/objects/volumeoff.png")
+    local armOpitons = { width = 184, height = 216, numFrames = 1, sheetContentWidth = 184, sheetContentHeight = 216 }
+    local armImg = display.newImage(sceneGroup, graphics.newImageSheet("images/objects/page2/braco.jpg", armOpitons))
+    local batOpitons = { width = 265, height = 214, numFrames = 1, sheetContentWidth = 265, sheetContentHeight = 214 }
+    local batImg = display.newImage(sceneGroup, graphics.newImageSheet("images/objects/page2/morcego.jpg", batOpitons))
 
-    -- Foils start off-screen at the top
-    foil1.x = 600
-    foil1.y = 200
-    foil2.x = 150
-    foil2.y = 200
-
+    background:translate(display.contentCenterX, display.contentCenterY)
+    btnNext:translate(668, 940)
+    btnPrev:translate(100, 940)
+    btnVolumeOn:translate(display.contentCenterX, 940)
+    btnVolumeOff:translate(display.contentCenterX, 940)
     btnVolumeOff.isVisible = false
+    armImg:translate(display.contentCenterX - armOpitons.width, 750)
+    batImg:translate(display.contentCenterX + batOpitons.width / 2, 750)
 
-    local startSound = audio.loadSound("sounds/No ComPod, a gente compartilha, (5).mp3")
+    local startSound = audio.loadSound("sounds/audio.mp3")
 
     local function playSound()
         audio.play(startSound, { loops = -1 })
@@ -74,54 +63,28 @@ function scene:create(event)
 
     -- Navigation function
     function btnNext:tap(event)
-        composer.gotoScene("Page3", { effect = "fromRight", time = 1000 })
+        composer.gotoScene("Page3", { effect = "fromRight", time = 0 })
     end
 
     function btnPrev:tap(event)
-        composer.gotoScene("Page1", { effect = "fromLeft", time = 1000 })
+        composer.gotoScene("Capa", { effect = "fromLeft", time = 0 })
     end
 
-    -- Function to animate foils falling into place
-    local function onShake(event)
-        if event.isShake then
-            -- Animate foil1
-            transition.to(foil1, {
-                time = 1000,
-                y = 350, -- Final position
-                transition = easing.outBounce
-            })
-            -- Animate foil2
-            transition.to(foil2, {
-                time = 1200,
-                y = 350, -- Final position
-                transition = easing.outBounce
-            })
-        end
-    end
-
-    -- Add listeners for shake and buttons
-    Runtime:addEventListener("accelerometer", onShake)
+    -- Add listeners
     btnNext:addEventListener("tap", btnNext)
     btnPrev:addEventListener("tap", btnPrev)
     btnVolumeOn:addEventListener("tap", btnVolumeOn)
     btnVolumeOff:addEventListener("tap", btnVolumeOff)
-
-    -- Add elements to the scene group
-    sceneGroup:insert(background)
-    sceneGroup:insert(btnNext)
-    sceneGroup:insert(btnPrev)
-    sceneGroup:insert(btnVolumeOn)
-    sceneGroup:insert(btnVolumeOff)
-    sceneGroup:insert(foil1)
-    sceneGroup:insert(foil2)
 end
 
 function scene:show(event)
     local sceneGroup = self.view
     local phase = event.phase
 
-    if (phase == "will") then
-    elseif (phase == "did") then
+    print(phase)
+
+    if phase == "will" then
+    elseif phase == "did" then
         audio.play(startSound, { loops = -1 })
     end
 end
@@ -130,15 +93,17 @@ function scene:hide(event)
     local sceneGroup = self.view
     local phase = event.phase
 
-    if (phase == "will") then
+    if phase == "will" then
         audio.stop()
-        Runtime:removeEventListener("accelerometer", onShake)
-    elseif (phase == "did") then
+    elseif phase == "did" then
     end
 end
 
 function scene:destroy(event)
     local sceneGroup = self.view
+
+    debugText:removeSelf()
+    debugText = nil
 
     if startSound then
         audio.dispose(startSound)

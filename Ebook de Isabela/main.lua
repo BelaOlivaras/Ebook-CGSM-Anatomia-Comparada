@@ -9,6 +9,7 @@ display.setStatusBar( display.HiddenStatusBar )
 
 -- include the Corona "composer" module
 local composer = require "composer"
+audio.setVolume(.1)
 
 -- load title screen
-composer.gotoScene( "Page5", "fade" )
+composer.gotoScene( "Capa", "fade" )

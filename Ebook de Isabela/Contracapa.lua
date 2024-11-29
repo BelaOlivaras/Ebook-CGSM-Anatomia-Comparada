@@ -3,29 +3,25 @@ local composer = require("composer")
 local scene = composer.newScene()
 
 local isSoundOn = true -- Variable to control the sound state
-local backgroundMusic -- Variable to store the background music
+local backgroundMusic  -- Variable to store the background music
 
 function scene:create(event)
     local sceneGroup = self.view
-    local background = display.newImage("images/background/Contra capa.png")
-    local btnNext = display.newImage("images/objects/next.png")
-    local btnPrev = display.newImage("images/objects/home.png")
-    local btnVolumeOn = display.newImage("images/objects/volume.png")
-    local btnVolumeOff = display.newImage("images/objects/volumeoff.png")
 
-    background.x = display.contentCenterX
-    background.y = display.contentCenterY
-    btnNext.x = 610
-    btnNext.y = 940
-    btnPrev.x = 100
-    btnPrev.y = 940
-    btnVolumeOn.x = display.contentCenterX
-    btnVolumeOn.y = 940
-    btnVolumeOff.x = display.contentCenterX
-    btnVolumeOff.y = 940
+    local background = display.newImage(sceneGroup, "images/background/Contra capa.png")
+    local btnNext = display.newImage(sceneGroup, "images/objects/home.png")
+    local btnPrev = display.newImage(sceneGroup, "images/objects/prev.png")
+    local btnVolumeOn = display.newImage(sceneGroup, "images/objects/volume.png")
+    local btnVolumeOff = display.newImage(sceneGroup, "images/objects/volumeoff.png")
+
+    background:translate(display.contentCenterX, display.contentCenterY)
+    btnNext:translate(668, 940)
+    btnPrev:translate(100, 940)
+    btnVolumeOn:translate(display.contentCenterX, 940)
+    btnVolumeOff:translate(display.contentCenterX, 940)
     btnVolumeOff.isVisible = false
 
-    local startSound = audio.loadSound("sounds/No ComPod, a gente compartilha, (5).mp3")
+    local startSound = audio.loadSound("sounds/audio.mp3")
 
     local function playSound()
         audio.play(startSound, { loops = -1 })
@@ -59,11 +55,11 @@ function scene:create(event)
 
     -- Navigation function
     function btnNext:tap(event)
-        composer.gotoScene("capa", { effect = "fromLeft", time = 1000 })
+        composer.gotoScene("Capa", { effect = "fromLeft", time = 0 })
     end
 
     function btnPrev:tap(event)
-        composer.gotoScene("Page5", { effect = "fromLeft", time = 1000 })
+        composer.gotoScene("Page6", { effect = "fromLeft", time = 0 })
     end
 
     -- Add listeners
@@ -71,15 +67,14 @@ function scene:create(event)
     btnPrev:addEventListener("tap", btnPrev)
     btnVolumeOn:addEventListener("tap", btnVolumeOn)
     btnVolumeOff:addEventListener("tap", btnVolumeOff)
-
 end
 
 function scene:show(event)
     local sceneGroup = self.view
     local phase = event.phase
 
-    if (phase == "will") then
-    elseif (phase == "did") then
+    if phase == "will" then
+    elseif phase == "did" then
         audio.play(startSound, { loops = -1 })
     end
 end
@@ -88,9 +83,9 @@ function scene:hide(event)
     local sceneGroup = self.view
     local phase = event.phase
 
-    if (phase == "will") then
+    if phase == "will" then
         audio.stop()
-    elseif (phase == "did") then
+    elseif phase == "did" then
     end
 end
 
