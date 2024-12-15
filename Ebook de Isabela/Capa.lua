@@ -1,85 +1,75 @@
 local composer = require("composer")
 
-print(display.contentCenterX)
-print(display.actualContentHeight)
-
 local scene = composer.newScene()
-
-local isSoundOn = true -- Variable to control the sound state
-local backgroundMusic  -- Variable to store the background music
 
 function scene:create(event)
     local sceneGroup = self.view
 
+    -- Carregar o som localmente
+    local startSound = audio.loadSound("sounds/Capa audio projeto cgsm.MP3")
+    local isSoundOn = false
+
+    -- Botões e objetos de cena
     local background = display.newImage(sceneGroup, "images/background/Capa.png")
     local btnNext = display.newImage(sceneGroup, "images/objects/next.png")
-    local btnPrev = display.newImage(sceneGroup, "images/objects/prev.png")
     local btnVolumeOn = display.newImage(sceneGroup, "images/objects/volume.png")
     local btnVolumeOff = display.newImage(sceneGroup, "images/objects/volumeoff.png")
 
-    background:translate(display.contentCenterX, display.contentCenterY)
-    btnNext:translate(668, 940)
-    btnPrev:translate(100, 940)
-    btnPrev.isVisible = false
-    btnVolumeOn:translate(display.contentCenterX, 940)
-    btnVolumeOff:translate(display.contentCenterX, 940)
-    btnVolumeOff.isVisible = false
+    -- Definir posições dos objetos
+    background.x = display.contentCenterX
+    background.y = display.contentCenterY
+    btnNext.x = 610
+    btnNext.y = 940
+    btnVolumeOn.x = display.contentCenterX
+    btnVolumeOn.y = 940
+    btnVolumeOff.x = display.contentCenterX
+    btnVolumeOff.y = 940
+    btnVolumeOff.isVisible = false -- O botão de volume desligado começa invisível
 
-    local startSound = audio.loadSound("sounds/audio.mp3")
-
+    -- Função para tocar o som no canal 1
     local function playSound()
-        audio.play(startSound, { loops = -1 })
+        audio.play(startSound, { loops = -1, channel = 1 })
         btnVolumeOn.isVisible = true
         btnVolumeOff.isVisible = false
+        isSoundOn = true
     end
 
+    -- Função para parar o som no canal 1
     local function stopSound()
-        audio.stop()
+        audio.stop(1)  -- Parar o som no canal 1
         btnVolumeOn.isVisible = false
         btnVolumeOff.isVisible = true
+        isSoundOn = false
     end
 
+    -- Função para alternar entre ligar/desligar o som
     local function toggleSound()
         if isSoundOn then
             stopSound()
-            isSoundOn = false
         else
             playSound()
-            isSoundOn = true
         end
     end
 
-    function btnVolumeOn:tap(event)
-        toggleSound()
-    end
-
-    function btnVolumeOff:tap(event)
-        toggleSound()
-    end
-
-    -- Navigation function
+    -- Funções de navegação
     function btnNext:tap(event)
-        composer.gotoScene("Page2", { effect = "fromRight", time = 0 })
+        if isSoundOn then stopSound() end
+        composer.gotoScene("Page2", { effect = "fromRight", time = 1000 })
     end
 
-    function btnPrev:tap(event)
-        composer.gotoScene("Capa", { effect = "fromLeft", time = 0 })
-    end
-
-    -- Add listeners
+    -- Adicionar os ouvintes de eventos
     btnNext:addEventListener("tap", btnNext)
-    btnPrev:addEventListener("tap", btnPrev)
-    btnVolumeOn:addEventListener("tap", btnVolumeOn)
-    btnVolumeOff:addEventListener("tap", btnVolumeOff)
+    btnVolumeOn:addEventListener("tap", toggleSound)
+    btnVolumeOff:addEventListener("tap", toggleSound)
 end
 
 function scene:show(event)
     local sceneGroup = self.view
     local phase = event.phase
 
-    if phase == "will" then
-    elseif phase == "did" then
-        audio.play(startSound, { loops = -1 })
+    if (phase == "did") then
+        -- Tocar o som quando a cena aparecer no canal 1
+        -- audio.play(startSound, { loops = -1, channel = 1 })
     end
 end
 
@@ -87,19 +77,19 @@ function scene:hide(event)
     local sceneGroup = self.view
     local phase = event.phase
 
-    if phase == "will" then
-        audio.stop()
-    elseif phase == "did" then
-    end
+    -- if (phase == "will") then
+    --     -- Parar o som quando a cena desaparecer no canal 1
+    --     -- audio.stop(1)
+    --     -- audio.dispose(startSound)
+    -- end
 end
 
 function scene:destroy(event)
     local sceneGroup = self.view
 
-    if startSound then
-        audio.dispose(startSound)
-        startSound = nil
-    end
+    -- Parar o som e limpar o canal
+    -- audio.stop(1)  -- Parar o som no canal 1
+    -- audio.dispose(startSound)  -- Liberar os recursos de áudio
 end
 
 scene:addEventListener("create", scene)

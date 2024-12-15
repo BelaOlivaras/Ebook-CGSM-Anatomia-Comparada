@@ -2,80 +2,72 @@ local composer = require("composer")
 
 local scene = composer.newScene()
 
-local isSoundOn = true -- Variable to control the sound state
-local backgroundMusic  -- Variable to store the background music
+local isSoundOn = false
 
 function scene:create(event)
     local sceneGroup = self.view
-
     local background = display.newImage(sceneGroup, "images/background/Contra capa.png")
-    local btnNext = display.newImage(sceneGroup, "images/objects/home.png")
-    local btnPrev = display.newImage(sceneGroup, "images/objects/prev.png")
+    local bookCoverBtn = display.newImage(sceneGroup, "images/objects/home.png")
     local btnVolumeOn = display.newImage(sceneGroup, "images/objects/volume.png")
     local btnVolumeOff = display.newImage(sceneGroup, "images/objects/volumeoff.png")
 
-    background:translate(display.contentCenterX, display.contentCenterY)
-    btnNext:translate(668, 940)
-    btnPrev:translate(100, 940)
-    btnVolumeOn:translate(display.contentCenterX, 940)
-    btnVolumeOff:translate(display.contentCenterX, 940)
+    background.x = display.contentCenterX
+    background.y = display.contentCenterY
+    bookCoverBtn.x = 100
+    bookCoverBtn.y = 940
+    btnVolumeOn.x = display.contentCenterX
+    btnVolumeOn.y = 940
+    btnVolumeOff.x = display.contentCenterX
+    btnVolumeOff.y = 940
     btnVolumeOff.isVisible = false
 
-    local startSound = audio.loadSound("sounds/audio.mp3")
+    -- Carregar o som
+    startSound = audio.loadSound("sounds/contra capa projeto cgsm.MP3")
 
+    -- Função para tocar o som
     local function playSound()
         audio.play(startSound, { loops = -1 })
         btnVolumeOn.isVisible = true
         btnVolumeOff.isVisible = false
+        isSoundOn = true
     end
 
+    -- Função para parar o som
     local function stopSound()
         audio.stop()
         btnVolumeOn.isVisible = false
         btnVolumeOff.isVisible = true
+        isSoundOn = false
     end
 
+    -- Função para alternar entre ligar/desligar o som
     local function toggleSound()
         if isSoundOn then
             stopSound()
-            isSoundOn = false
         else
             playSound()
-            isSoundOn = true
         end
     end
 
-    function btnVolumeOn:tap(event)
-        toggleSound()
+    local function goToBookCover()
+        if isSoundOn then stopSound() end
+        composer.gotoScene("Capa", { effect = "fromLeft", time = 1000 })
     end
 
-    function btnVolumeOff:tap(event)
-        toggleSound()
-    end
-
-    -- Navigation function
-    function btnNext:tap(event)
-        composer.gotoScene("Capa", { effect = "fromLeft", time = 0 })
-    end
-
-    function btnPrev:tap(event)
-        composer.gotoScene("Page6", { effect = "fromLeft", time = 0 })
-    end
-
-    -- Add listeners
-    btnNext:addEventListener("tap", btnNext)
-    btnPrev:addEventListener("tap", btnPrev)
-    btnVolumeOn:addEventListener("tap", btnVolumeOn)
-    btnVolumeOff:addEventListener("tap", btnVolumeOff)
+    -- Adicionar os ouvintes de eventos
+    bookCoverBtn:addEventListener("tap", goToBookCover)
+    btnVolumeOn:addEventListener("tap", toggleSound)
+    btnVolumeOff:addEventListener("tap", toggleSound)
 end
 
 function scene:show(event)
     local sceneGroup = self.view
     local phase = event.phase
 
-    if phase == "will" then
-    elseif phase == "did" then
-        audio.play(startSound, { loops = -1 })
+    if (phase == "did") then
+        if isSoundOn then
+            audio.play(startSound, { loops = -1 })
+        end
     end
 end
 
@@ -83,9 +75,8 @@ function scene:hide(event)
     local sceneGroup = self.view
     local phase = event.phase
 
-    if phase == "will" then
+    if (phase == "will") then
         audio.stop()
-    elseif phase == "did" then
     end
 end
 

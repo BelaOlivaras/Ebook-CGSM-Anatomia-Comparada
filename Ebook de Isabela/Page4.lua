@@ -2,68 +2,75 @@ local composer = require("composer")
 
 local scene = composer.newScene()
 
-local isSoundOn = true -- Variable to control the sound state
-local backgroundMusic  -- Variable to store the background music
-
 function scene:create(event)
     local sceneGroup = self.view
 
-    local background = display.newImage(sceneGroup, "images/background/pagina 3.png")
+    -- Local variables
+    local isSoundOn = true
+    local startSound
+    local background = display.newImage(sceneGroup, "images/background/pagina 4.png")
     local btnNext = display.newImage(sceneGroup, "images/objects/next.png")
     local btnPrev = display.newImage(sceneGroup, "images/objects/prev.png")
     local btnVolumeOn = display.newImage(sceneGroup, "images/objects/volume.png")
     local btnVolumeOff = display.newImage(sceneGroup, "images/objects/volumeoff.png")
     local imagem1 = display.newImage(sceneGroup, "images/objects/page4/imagen1.png")
     local imagem2 = display.newImage(sceneGroup, "images/objects/page4/imagen2.png")
-    local imagem3 = display.newImage(sceneGroup, "images/objects/page4/imagen3.png")
     local text = display.newImage(sceneGroup, "images/objects/page4/text.png")
 
     -- Positioning elements
-    background:translate(display.contentCenterX, display.contentCenterY)
-    btnNext:translate(668, 940)
-    btnPrev:translate(100, 940)
-    btnVolumeOn:translate(display.contentCenterX, 940)
-    btnVolumeOff:translate(display.contentCenterX, 940)
-    imagem1:translate(200, 540)
-    imagem2:translate(570, 540)
-    imagem3:translate(display.contentCenterX, 720)
-    text:translate(display.contentCenterX, 850)
+    background.x = display.contentCenterX
+    background.y = display.contentCenterY
+    btnNext.x = 610
+    btnNext.y = 940
+    btnPrev.x = 100
+    btnPrev.y = 940
+    btnVolumeOn.x = display.contentCenterX
+    btnVolumeOn.y = 940
+    btnVolumeOff.x = display.contentCenterX
+    btnVolumeOff.y = 940
+    text.x = display.contentCenterX
+    text.y = 850
 
     -- Adjusting sizes
-    imagem1.width = 250
-    imagem1.height = 150
-    imagem2.width = 250
-    imagem2.height = 150
-    imagem3.width = 250
-    imagem3.height = 150
+    imagem1.width = 300
+    imagem1.height = 300
+    imagem1.x = 70 + (imagem1.width / 2)
+    imagem1.y = 470 + (imagem1.height / 2)
+
+    imagem2.width = 300
+    imagem2.height = 250
+    imagem2.x = 400 + (imagem2.width / 2)
+    imagem2.y = 500 + (imagem2.height / 2)
 
     -- Setting initial visibility
     btnVolumeOff.isVisible = false
     imagem2.isVisible = false
-    imagem3.isVisible = false
 
     -- Loading background sound
-    local startSound = audio.loadSound("sounds/audio.mp3")
+    startSound = audio.loadSound("sounds/p4 projeto cgsm.MP3")
 
+    -- Function to play sound on channel 1
     local function playSound()
-        audio.play(startSound, { loops = -1 })
+        audio.play(startSound, { channel = 1, loops = -1 })
         btnVolumeOn.isVisible = true
         btnVolumeOff.isVisible = false
+        isSoundOn = true
     end
 
+    -- Function to stop sound on channel 1
     local function stopSound()
-        audio.stop()
+        audio.stop(1)
         btnVolumeOn.isVisible = false
         btnVolumeOff.isVisible = true
+        isSoundOn = false
     end
 
+    -- Function to toggle sound
     local function toggleSound()
         if isSoundOn then
             stopSound()
-            isSoundOn = false
         else
             playSound()
-            isSoundOn = true
         end
     end
 
@@ -72,35 +79,43 @@ function scene:create(event)
         imagem2.isVisible = true
     end
 
-    local function showImagem3()
-        imagem3.isVisible = true
+    -- Event listeners for navigation
+    local function goToNextPage()
+        if isSoundOn then stopSound() end
+        composer.gotoScene("Page5", { effect = "fromRight", time = 1000 })
     end
 
-    function btnNext:tap(event)
-        composer.gotoScene("Page5", { effect = "fromRight", time = 0 })
+    local function goToPreviousPage()
+        if isSoundOn then stopSound() end
+        composer.gotoScene("Page3", { effect = "fromLeft", time = 1000 })
     end
 
-    function btnPrev:tap(event)
-        composer.gotoScene("Page3", { effect = "fromLeft", time = 0 })
-    end
-
-    btnPrev:addEventListener("tap", btnPrev)
-    btnNext:addEventListener("tap", btnNext)
+    -- Add event listeners
+    btnPrev:addEventListener("tap", goToPreviousPage)
+    btnNext:addEventListener("tap", goToNextPage)
     imagem1:addEventListener("tap", showImagem2)
-    imagem2:addEventListener("tap", showImagem3)
-    btnVolumeOn:addEventListener("tap", function()
-        toggleSound()
-    end)
-    btnVolumeOff:addEventListener("tap", function()
-        toggleSound()
-    end)
+    btnVolumeOn:addEventListener("tap", toggleSound)
+    btnVolumeOff:addEventListener("tap", toggleSound)
+
+    -- Insert elements into the scene group
+    sceneGroup:insert(background)
+    sceneGroup:insert(btnNext)
+    sceneGroup:insert(btnPrev)
+    sceneGroup:insert(btnVolumeOn)
+    sceneGroup:insert(btnVolumeOff)
+    sceneGroup:insert(imagem1)
+    sceneGroup:insert(imagem2)
+    sceneGroup:insert(text)
 end
 
 function scene:show(event)
     local phase = event.phase
 
     if phase == "did" then
-        audio.play(startSound, { loops = -1 })
+        -- Stop audio from previous scene
+        audio.stop(1)
+        -- Play the audio for the current scene on channel 1
+        audio.play(startSound, { channel = 1, loops = -1 })
     end
 end
 
@@ -108,17 +123,21 @@ function scene:hide(event)
     local phase = event.phase
 
     if phase == "will" then
-        audio.stop()
+        -- Stop audio when leaving the scene
+        audio.stop(1)
     end
 end
 
 function scene:destroy(event)
+    -- Stop and clean up the audio when the scene is destroyed
     if startSound then
-        audio.dispose(startSound)
-        startSound = nil
+        audio.stop(1)             -- Ensure the audio stops on channel 1
+        audio.dispose(startSound) -- Clean up the audio resource
+        startSound = nil          -- Nullify the reference
     end
 end
 
+-- Add event listeners for scene phases
 scene:addEventListener("create", scene)
 scene:addEventListener("show", scene)
 scene:addEventListener("hide", scene)
